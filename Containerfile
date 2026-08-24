@@ -101,10 +101,19 @@ RUN chown -R ${NB_UID}:${NB_GID} /home/${NB_USER} \
 COPY configs/.condarc ${CONDA_DIR}/.condarc
 
 # Activate the env for login shells and for Jupyter's terminal windows.
+#
 # Activated by full prefix rather than by name: `conda activate notebook` would
 # search envs_dirs in order, and a user env of the same name in ~/my-conda-envs
 # comes first and would shadow this one.
-RUN echo ". ${CONDA_DIR}/etc/profile.d/conda.sh ; conda activate ${NB_PYTHON_PREFIX}" > /etc/profile.d/init_conda.sh \
+#
+# The `zzz-` prefix is load-bearing. At runtime OOD injects its own
+# /etc/profile.d/zz-ood-conda.sh, which probes for a conda and runs
+# `conda activate base`. /etc/profile sources profile.d in glob (sorted) order,
+# so anything sorting before `zz-` gets overridden: the shell ends up in base
+# (/srv/conda) with base's bin ahead of the env's on PATH, and a terminal's
+# `python` is then missing every package in environment.yml while the notebook
+# kernel has them. Sorting after it is what makes the env stick.
+RUN echo ". ${CONDA_DIR}/etc/profile.d/conda.sh ; conda activate ${NB_PYTHON_PREFIX}" > /etc/profile.d/zzz-init-conda.sh \
     && printf '\n. %s/etc/profile.d/conda.sh\nconda activate %s\n' "${CONDA_DIR}" "${NB_PYTHON_PREFIX}" >> /etc/bash.bashrc
 
 # --- jupyter config ----------------------------------------------------------
