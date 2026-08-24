@@ -1,0 +1,24 @@
+# OS packages, one per line. Comments and blank lines are ignored.
+# Every entry grows the image, so add only what you actually need.
+
+# --- keep these ---
+ca-certificates
+curl
+wget
+git
+locales
+
+# --- compilers, needed by anything that builds from source ---
+gcc
+g++
+gfortran
+make
+cmake
+
+# --- conveniences ---
+vim
+nano
+openssh-client
+fonts-dejavu
+
+# --- add yours below ---

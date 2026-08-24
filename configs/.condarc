@@ -1,0 +1,23 @@
+# Conda configuration baked into the image.
+# https://conda.io/projects/conda/en/latest/configuration.html
+
+auto_update_conda: false
+show_channel_urls: true
+
+channels:
+  - conda-forge
+
+# /srv/conda is read-only at runtime, so anything a user creates has to live in
+# their home directory. Envs found here are picked up as Jupyter kernels by
+# nb_conda_kernels, which means
+#   conda create -p ~/my-conda-envs/myenv python=3.12 ipykernel ...
+# gives a new kernel with no image rebuild at all.
+envs_dirs:
+  - ~/my-conda-envs
+  - /srv/conda/envs
+
+# The package cache has to be writable, and /srv/conda is not.
+pkgs_dirs:
+  - ~/.conda/pkgs
+
+env_prompt: '({name})'

@@ -1,0 +1,43 @@
+#!/bin/bash -l
+#
+# Container entrypoint.
+#
+# The `-l` matters: it makes this a login shell, which sources
+# /etc/profile.d/init_conda.sh and therefore activates the notebook
+# environment before the server process starts.
+#
+# Open OnDemand sets these at runtime, overriding the image's build-time
+# defaults:
+#
+#   HOME     the user's real home directory
+#   NB_USER  their username
+#   NB_UID   their uid
+#   NB_GID   their gid
+#
+# This script must NOT useradd, groupadd, chown, or drop privileges with
+# gosu/sudo. It runs as an unprivileged uid and has no permission to do any of
+# that - and the failed attempt is exactly what makes a container exit
+# immediately at startup.
+
+set -e
+
+# The image is built with WORKDIR=/home/jovyan, but OOD points HOME at the real
+# home. Jupyter serves files from the working directory, so without this the
+# user would get the image's empty placeholder home instead of their own files.
+if [ -n "${HOME}" ] && [ -d "${HOME}" ]; then
+    cd "${HOME}"
+else
+    echo "start: HOME='${HOME}' is not a directory; serving from $(pwd) instead" >&2
+fi
+
+# A writable home is needed for kernels, ~/my-conda-envs and Jupyter's state.
+# If it is not writable, the uid this pod runs as does not match the home
+# directory's owner - a pod-spec problem (runAsUser), not an image one. Warn
+# rather than exit, so the server still comes up and can be inspected.
+if [ ! -w "$(pwd)" ]; then
+    echo "start: WARNING $(pwd) is not writable by uid $(id -u), gid $(id -g)." >&2
+    echo "start: expected NB_UID=${NB_UID:-unset} NB_GID=${NB_GID:-unset}; check that the" >&2
+    echo "start: pod's runAsUser/runAsGroup match them." >&2
+fi
+
+exec "$@"
