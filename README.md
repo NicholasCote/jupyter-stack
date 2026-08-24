@@ -34,9 +34,6 @@ stack you want to start fast, or one environment shared across a group.
 | `scripts/start` | **no** | Entrypoint. See the warning below. |
 | `.github/workflows/build.yaml` | once | Build + push. Set `REGISTRY`/`IMAGE`, add two secrets. |
 
-Note that `.github/workflows/build.yaml` only runs once this directory is the
-root of its own repository — GitHub only reads workflows from a repo root.
-
 ## Adding packages
 
 Open `environment.yml` and add under the `YOUR PACKAGES GO BELOW` marker. There
@@ -92,46 +89,33 @@ podman run --rm --user 12345 my-notebook:dev python -c "print('ok')"
 ## Automated builds (GitHub Actions)
 
 `.github/workflows/build.yaml` builds the image on every push to `main` and on
-every pull request, and pushes it on `main`. It runs on GitHub's own
-`ubuntu-latest` runners with a local builder, so it needs no NSF NCAR
-infrastructure access — only a registry you can push to.
+every pull request, and pushes it to a registry on `main`. It runs on GitHub's
+own runners, so there is nothing to install and nothing to arrange first.
 
-Two things to set up:
+To turn pushing on:
 
-1. In the workflow's `env:` block, set `REGISTRY` and `IMAGE`.
+1. In the workflow's `env:` block, set `REGISTRY` and `IMAGE` to where your
+   image should go. For NSF NCAR Harbor that is `hub.k8s.ucar.edu` and
+   `your-project/your-image-name` — ask CISL for a project you can push to and
+   a robot account to push with.
 2. Add two repository secrets under **Settings → Secrets and variables →
    Actions**:
 
    | Secret | What it is |
    |---|---|
-   | `REGISTRY_USERNAME` | robot account or username for that registry |
+   | `REGISTRY_USERNAME` | the robot account or username |
    | `REGISTRY_PASSWORD` | its password or token |
 
-Until those secrets exist the workflow still **builds** on every push and pull
-request, it just does not push — which is a useful check on its own, since a
-broken `environment.yml` fails there. Pull requests never push, so a PR is a
-safe way to test a package change.
+Until both secrets exist the workflow still **builds** the image on every push
+and pull request — it just does not push it anywhere. That is worth having on
+its own: a typo or an unsolvable `environment.yml` fails there, in a log you can
+read, instead of when you try to launch a server.
 
-Where to push:
+Pull requests never push, so opening one is a safe way to check a package change
+before it reaches `latest`.
 
-- **NSF NCAR Harbor** (`hub.k8s.ucar.edu`) — ask CISL for a project you can
-  write to, plus a robot account for the two secrets.
-- **This repo's GitHub Packages** (`ghcr.io`) — needs no secrets at all; the
-  comments at the top of the workflow list the three lines to change. Handy for
-  trying the build out before you have a Harbor project.
-
-Every run finishes with a smoke test — Python version, `jupyterhub-singleuser`
-version, kernel list, and a run as an arbitrary uid — against the image it just
-built or pushed.
-
-Two notes on hosted runners: they have 2 cores, so a cold conda solve is slow
-(the workflow allows 120 minutes, and caches layers between runs), and the
-build starts by deleting preinstalled toolchains to free disk. Both are
-commented in the file.
-
-If CISL has granted your repo access to the `CIRRUS-4x8` runner group and the
-`buildkitd.arc-systems` endpoint, the workflow comments say how to switch back
-to those — but that access is not the default and you should not assume it.
+Each pushed build gets two tags: `latest` and the short commit sha. The first
+build takes a while; after that, unchanged layers come from the cache.
 
 ## How OOD launches this image
 
