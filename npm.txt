@@ -1,0 +1,14 @@
+# Global npm packages, one per line. Comments and blank lines are ignored.
+#
+# This exists for Jupyter AI. It ships with no agents - each one is a separate
+# npm package - and they cannot be added from a running server: `npm install -g`
+# writes into /srv/conda, which is root-owned and read-only at runtime, so it
+# fails with EACCES. Installing here, as root at build time, is the way.
+#
+# Anything listed here needs `nodejs` in environment.yml.
+# https://jupyter-ai.readthedocs.io/en/stable/getting-started.html
+
+# --- jupyter-ai agents ---
+@agentclientprotocol/claude-agent-acp
+
+# --- add yours below ---

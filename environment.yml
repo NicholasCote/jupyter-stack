@@ -22,22 +22,18 @@ dependencies:
   # ---- interpreter --------------------------------------------------------
   - python=3.12
 
-  # ---- hub contract: MUST match the CIRRUS hub version --------------------
-  # If this drifts from the hub, your server will fail to launch. Only change
-  # it when CISL announces a hub upgrade.
-  - jupyterhub-singleuser=5.2.1
-
   # ---- Jupyter itself -----------------------------------------------------
   - jupyterlab
   - notebook
   - ipykernel
   - ipywidgets
 
-  # ---- integrations the hub and CIRRUS docs assume ------------------------
+  # ---- Jupyter Integrations -----------------------------------------------
   - jupyter-server-proxy    # proxies extra web apps (dask dashboard, etc.)
   - jupyter-resource-usage  # the CPU/RAM readout in the status bar
   - nbgitpuller             # nbgitpuller links, used by course/workshop material
   - jupyterlab-git          # git panel in the JupyterLab sidebar
   - nbdime                  # readable notebook diffs
   - nb_conda_kernels        # envs in ~/my-conda-envs show up as kernels
-  - jupyter-ai
+  - jupyter-ai>=3          # agents exist only in v3; conda-forge still has 2.x
+  - nodejs                  # npm, for the jupyter-ai agents in npm.txt

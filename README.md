@@ -28,6 +28,7 @@ stack you want to start fast, or one environment shared across a group.
 |---|---|---|
 | `environment.yml` | **yes** | Your conda/pip packages. The main file. |
 | `apt.txt` | sometimes | Extra OS packages. |
+| `npm.txt` | sometimes | Global npm packages. Jupyter AI agents go here. |
 | `Containerfile` | rarely | The build. Reasonable defaults; read it once. |
 | `configs/.condarc` | rarely | Channels, and where user envs/pkgs live. |
 | `configs/jupyter_server_config.py` | rarely | Jupyter server settings. |
@@ -48,6 +49,30 @@ pip-only packages.
 2. **Do not add tight pins for `jupyterlab_server`, `jupyter_server`, or
    `notebook`.** Pinning those alongside a pinned `jupyterlab` is exactly what
    makes the solve fail. Let conda pick them.
+
+### npm packages, and Jupyter AI agents
+
+Jupyter AI ships with **no agents** — each one is a separate npm package that
+you install yourself. They have to go in the image: at runtime `/srv/conda` is
+read-only, so `npm install -g` in a terminal fails with `EACCES` no matter what
+you try.
+
+List them in `npm.txt`, one per line, and make sure `nodejs` is in
+`environment.yml` (the build stops with a clear message if it is missing):
+
+```
+@agentclientprotocol/claude-agent-acp
+```
+
+`npm install -g` resolves to this image's conda environment, so the agent lands
+on every user's `PATH`. The build skips this step entirely when `npm.txt` has no
+entries, so you only pay for it if you use it.
+
+Agents need credentials at runtime — an API key or a login. Provide those
+per-user through the hub environment or the user's home directory; do not bake a
+key into the image, where every user of it would share yours. The agent also
+needs outbound network access to its provider, which is worth confirming with
+CISL before you debug it as an image problem.
 
 For reproducibility, generate a lock file instead of hand-pinning:
 

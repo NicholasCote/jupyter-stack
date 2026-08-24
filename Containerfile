@@ -88,6 +88,29 @@ RUN echo "Building the ${CONDA_ENV} environment..." \
     && find "${CONDA_DIR}" -follow -type f -name '*.a' -delete \
     && rm /tmp/environment.yml
 
+# --- npm packages ------------------------------------------------------------
+# For Jupyter AI agents, which ship separately from jupyter-ai itself and are
+# npm packages. `npm install -g` resolves to this env's prefix, which is
+# root-owned and read-only at runtime - so a user cannot add an agent from a
+# terminal (it fails EACCES). They have to be baked in here.
+#
+# Skipped entirely when npm.txt has no entries. The npm cache is redirected out
+# of $HOME so this step leaves no root-owned files in the user's home.
+COPY npm.txt /tmp/npm.txt
+RUN echo "Installing npm packages..." \
+    && export npm_config_cache=/tmp/npm-cache \
+    && NPM_PKGS="$( grep -vE '^[[:space:]]*(#|$)' /tmp/npm.txt || true )" \
+    && if [ -n "$NPM_PKGS" ]; then \
+         if ! command -v npm >/dev/null 2>&1; then \
+           echo "ERROR: npm.txt lists packages but npm is missing - add 'nodejs' to environment.yml" >&2; \
+           exit 1; \
+         fi; \
+         echo "$NPM_PKGS" | xargs -r npm install -g; \
+       else \
+         echo "npm.txt is empty, skipping."; \
+       fi \
+    && rm -rf /tmp/npm-cache /tmp/npm.txt
+
 # Two fixes for the home directory, after all the root-owned writes above:
 #  - conda writes ~/.conda/environments.txt as root while building the env, so
 #    hand ownership back;
