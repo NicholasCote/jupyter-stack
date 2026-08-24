@@ -139,6 +139,18 @@ COPY configs/.condarc ${CONDA_DIR}/.condarc
 RUN echo ". ${CONDA_DIR}/etc/profile.d/conda.sh ; conda activate ${NB_PYTHON_PREFIX}" > /etc/profile.d/zzz-init-conda.sh \
     && printf '\n. %s/etc/profile.d/conda.sh\nconda activate %s\n' "${CONDA_DIR}" "${NB_PYTHON_PREFIX}" >> /etc/bash.bashrc
 
+# --- extra agents for Jupyter AI ---------------------------------------------
+# Jupyter AI finds agents two ways, and a Qwen entry in the picker needs both:
+#   - the executable, found by name on PATH (`shutil.which`);
+#   - a persona class registered under the `jupyter_ai.personas` entry point.
+# There is no config file for either, which is why this is a wrapper script plus
+# a one-class package rather than a setting.
+COPY --chmod=755 scripts/qwen-agent-acp ${NB_PYTHON_PREFIX}/bin/qwen-agent-acp
+COPY persona /tmp/persona
+RUN echo "Installing Jupyter AI personas..." \
+    && pip install --no-deps --no-cache-dir /tmp/persona \
+    && rm -rf /tmp/persona
+
 # --- jupyter config ----------------------------------------------------------
 COPY configs/jupyter_server_config.py /etc/jupyter/jupyter_server_config.py
 

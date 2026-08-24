@@ -29,6 +29,7 @@ stack you want to start fast, or one environment shared across a group.
 | `environment.yml` | **yes** | Your conda/pip packages. The main file. |
 | `apt.txt` | sometimes | Extra OS packages. |
 | `npm.txt` | sometimes | Global npm packages. Jupyter AI agents go here. |
+| `persona/` | rarely | Registers the NCAR model as a Jupyter AI agent. |
 | `Containerfile` | rarely | The build. Reasonable defaults; read it once. |
 | `configs/.condarc` | rarely | Channels, and where user envs/pkgs live. |
 | `configs/jupyter_server_config.py` | rarely | Jupyter server settings. |
@@ -49,6 +50,57 @@ pip-only packages.
 2. **Do not add tight pins for `jupyterlab_server`, `jupyter_server`, or
    `notebook`.** Pinning those alongside a pinned `jupyterlab` is exactly what
    makes the solve fail. Let conda pick them.
+
+### Choosing an AI agent
+
+Jupyter AI's chat has an agent picker. This image ships four:
+
+| Agent | Backed by | Account needed |
+|---|---|---|
+| **Qwen (NCAR)** | the NSF NCAR-hosted model | **none** |
+| **Claude** | `api.anthropic.com` | Anthropic |
+| **Codex** | OpenAI | OpenAI or ChatGPT |
+| **Copilot** | GitHub | GitHub |
+
+Qwen works immediately and needs no credentials, so nobody is blocked on having
+a commercial account. The other three each need you to sign in once.
+
+**Signing in.** Agents run as child processes of the Jupyter *server*, so an
+environment variable exported in a terminal reaches only that terminal. Put it
+in `~/.bash_profile`, which the entrypoint sources before starting the server,
+then restart your server:
+
+```bash
+printf 'export OPENAI_API_KEY=sk-...\n' >> ~/.bash_profile
+chmod 600 ~/.bash_profile
+```
+
+`~/.bashrc` will **not** work — a login shell does not read it.
+
+The CLI login commands are an alternative to keys, and they store credentials
+under your home directory, which persists across server restarts:
+
+- **Copilot** — `copilot login` in a terminal. Or set `COPILOT_GITHUB_TOKEN`,
+  `GH_TOKEN`, or `GITHUB_TOKEN`.
+- **Codex** — `codex login` to use a ChatGPT account. Or set `OPENAI_API_KEY`
+  or `CODEX_API_KEY`.
+- **Claude** — `claude /login` signs the CLI in to a Claude.ai account, which
+  is useful for using Claude Code in a terminal. It may not be enough for the
+  Claude *agent*: Anthropic does not permit third-party tools built on the
+  Claude Agent SDK to use Claude.ai logins without prior approval, so the agent
+  may still require `ANTHROPIC_API_KEY` from `console.anthropic.com`.
+
+Restart the server after any of these.
+
+**The NCAR endpoint.** The Qwen agent is the stock Claude adapter aimed at an
+internally hosted model rather than Anthropic — see `scripts/qwen-agent-acp`
+and `persona/`. It is reachable as both `qwen.k8s.ucar.edu` and
+`llm.k8s.ucar.edu`. Both the host and the model name can be changed at runtime,
+without rebuilding, through `NCAR_MODEL_BASE_URL` and `NCAR_MODEL_NAME`.
+
+To drop an agent, delete its line from `npm.txt` — Jupyter AI finds agents by
+looking for their executable, so removing the package removes the agent and
+nothing else.
 
 ### npm packages, and Jupyter AI agents
 

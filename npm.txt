@@ -1,4 +1,6 @@
 # Global npm packages, one per line. Comments and blank lines are ignored.
+# Comments must be on their own line - a trailing `# ...` is not stripped and
+# would be passed to npm as a package name.
 #
 # This exists for Jupyter AI. It ships with no agents - each one is a separate
 # npm package - and they cannot be added from a running server: `npm install -g`
@@ -8,7 +10,33 @@
 # Anything listed here needs `nodejs` in environment.yml.
 # https://jupyter-ai.readthedocs.io/en/stable/getting-started.html
 
-# --- jupyter-ai agents ---
+# --- jupyter-ai agents -------------------------------------------------------
+# Each line adds one entry to the chat's agent picker. Jupyter AI finds agents
+# by looking for a specific executable on PATH, so deleting a line removes that
+# agent and nothing else.
+#
+# All three below talk to a commercial service and need the user's own account.
+# The NCAR-hosted agent needs no account and is always available - it is not an
+# npm package, see scripts/qwen-agent-acp and persona/.
+
+# Claude - needs an Anthropic account.
+# Two packages, same split as Codex: the ACP adapter is what Jupyter AI drives,
+# and the Claude Code CLI supplies the `claude /login` command the agent points
+# users at when it is not authenticated. Note that Anthropic does not permit
+# third-party tools built on the Claude Agent SDK to use claude.ai logins
+# without prior approval, so the agent may still need an API key even after a
+# successful CLI login - see README.
 @agentclientprotocol/claude-agent-acp
+@anthropic-ai/claude-code
+
+# Codex - needs an OpenAI account.
+# Two packages: the ACP adapter is what Jupyter AI drives, and the Codex CLI
+# supplies the `codex login` command for signing in with a ChatGPT account
+# instead of an API key.
+@zed-industries/codex-acp
+@openai/codex
+
+# Copilot - needs a GitHub account
+@github/copilot
 
 # --- add yours below ---

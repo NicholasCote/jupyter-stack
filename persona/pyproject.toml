@@ -1,0 +1,28 @@
+# Registers the NSF NCAR model as a Jupyter AI persona (agent).
+#
+# Jupyter AI discovers personas through the `jupyter_ai.personas` entry point
+# group, so a new agent in the picker has to come from an installed package -
+# there is no config file for it. This package exists only to carry that entry
+# point; the Containerfile pip-installs it into the image.
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jupyter-ai-ncar-personas"
+version = "0.1.0"
+description = "Jupyter AI personas for NSF NCAR-hosted models"
+requires-python = ">=3.10"
+# Deliberately empty: jupyter-ai and jupyter-ai-acp-client come from
+# environment.yml, and repeating them here would let pip pull a second,
+# conflicting copy over the conda-installed one.
+dependencies = []
+
+[project.entry-points."jupyter_ai.personas"]
+qwen-acp = "jupyter_ai_ncar_personas.qwen_persona:QwenAcpPersona"
+
+[tool.setuptools.packages.find]
+include = ["jupyter_ai_ncar_personas*"]
+
+[tool.setuptools.package-data]
+jupyter_ai_ncar_personas = ["*.svg"]

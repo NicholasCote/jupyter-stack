@@ -1,0 +1,22 @@
+#!/bin/sh
+# The Claude ACP adapter, pointed at the NSF NCAR-hosted model instead of
+# api.anthropic.com. Jupyter AI's Qwen persona runs this instead of
+# `claude-agent-acp`; everything else about the adapter is identical.
+#
+# The adapter speaks the Anthropic API, so aiming it elsewhere is only a matter
+# of these variables. The auth values are placeholders: the endpoint does not
+# check them, but the adapter refuses to start with none set.
+#
+# Both values can be overridden at runtime (hub env, or the user's shell)
+# without rebuilding the image.
+BASE_URL="${NCAR_MODEL_BASE_URL:-http://qwen.k8s.ucar.edu}"
+MODEL="${NCAR_MODEL_NAME:-qwen3-coder-next}"
+
+export ANTHROPIC_BASE_URL="$BASE_URL"
+export ANTHROPIC_API_KEY=dummy
+export ANTHROPIC_AUTH_TOKEN=dummy
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$MODEL"
+
+exec claude-agent-acp "$@"

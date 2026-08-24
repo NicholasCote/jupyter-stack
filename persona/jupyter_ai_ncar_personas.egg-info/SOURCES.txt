@@ -1,0 +1,9 @@
+pyproject.toml
+jupyter_ai_ncar_personas/__init__.py
+jupyter_ai_ncar_personas/qwen.svg
+jupyter_ai_ncar_personas/qwen_persona.py
+jupyter_ai_ncar_personas.egg-info/PKG-INFO
+jupyter_ai_ncar_personas.egg-info/SOURCES.txt
+jupyter_ai_ncar_personas.egg-info/dependency_links.txt
+jupyter_ai_ncar_personas.egg-info/entry_points.txt
+jupyter_ai_ncar_personas.egg-info/top_level.txt

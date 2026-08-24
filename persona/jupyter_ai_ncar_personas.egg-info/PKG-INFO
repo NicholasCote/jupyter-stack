@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: jupyter-ai-ncar-personas
+Version: 0.1.0
+Summary: Jupyter AI personas for NSF NCAR-hosted models
+Requires-Python: >=3.10

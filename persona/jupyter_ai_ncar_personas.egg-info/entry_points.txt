@@ -1,0 +1,2 @@
+[jupyter_ai.personas]
+qwen-acp = jupyter_ai_ncar_personas.qwen_persona:QwenAcpPersona
